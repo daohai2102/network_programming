@@ -5,6 +5,7 @@
 #include <strings.h>
 #include <arpa/inet.h>
 #include <sys/types.h>
+#include <string.h>
 
 int main(){
 	//open a socket to listen
@@ -55,7 +56,7 @@ int main(){
 	printf("message from client: %s\n", buf);
 
 	char send_messg[512] = "Hello client!";
-	int send_messg_len = sizeof(send_messg);
+	int send_messg_len = strlen(send_messg) + 1;	//include '\0'
 	nbytes = write(newfd, send_messg, send_messg_len);
 	if (nbytes < 0){
 		perror("write");
