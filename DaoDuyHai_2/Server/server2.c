@@ -110,7 +110,14 @@ int main(){
 				}
 			}
 
-			if (socket_err || ferror(file)){
+			if (ferror(file)){
+				/* read file error */
+				perror("read file");
+				fclose(file);
+				continue;
+			}
+
+			if (socket_err){
 				fclose(file);
 				break;
 			}

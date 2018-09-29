@@ -17,6 +17,7 @@
 #include <sys/types.h>
 #include <stdlib.h>
 #include <time.h>
+#include <errno.h>
 #include "../sockio.h"
 
 const char TERM_STR[] = "QUIT";
@@ -44,12 +45,28 @@ int main(){
 		return 1;
 	}
 
+	uint32_t default_buf_size = 0;
+	socklen_t tmp = sizeof(default_buf_size);
+	getsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &default_buf_size, &tmp);
+	fprintf(stderr, "default buffer size: %u (var size: %u)\n", default_buf_size, tmp);
+
 	/* set socket buffer size */
 	printf("Enter socket buffer size (bytes): ");
 	uint32_t sb_size = 0;
 	scanf("%u", &sb_size);
 	getchar();
 	setsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &sb_size, sizeof(sb_size));
+
+	getsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &default_buf_size, &tmp);
+	fprintf(stderr, "buffer size after being set: %u (var size: %u)\n", default_buf_size, tmp);
+
+	
+
+	/* set time out */
+	struct timeval tv;
+	tv.tv_sec = 5;
+	tv.tv_usec= 0;
+	setsockopt(servsock, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
 
 	if (connect(servsock, (struct sockaddr*) &servsin, sizeof(servsin)) < 0){
 		perror("connect");
@@ -112,12 +129,9 @@ int main(){
 
 		fprintf(stderr, "file size: %u\n", file_size);
 		uint32_t remain = file_size;
-		short socket_err = 0;
+		uint32_t n_read = 0;
 		while (remain > 0){
-			uint32_t n_read = 0;
 			if ((n_read = read(servsock, buf, MAX_LEN)) <= 0){
-				perror("read from socket");
-				socket_err = 1;
 				break;
 			}
 			if (fwrite(buf, 1, n_read, file) < n_read){
@@ -131,7 +145,12 @@ int main(){
 					file_size - remain, file_size, filename);
 		}
 		fclose(file);
-		if (socket_err){
+		if (errno == EWOULDBLOCK){
+			/* socket timeout => file error at the server side */
+			perror("socket timeout");
+			continue;
+		}
+		if (n_read < 0){
 			remove(filename);
 			break;
 		}
