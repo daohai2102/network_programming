@@ -1,11 +1,10 @@
-/** Client - send messages to server.
+/** Client - download files from server.
  * @Full name: Dao Duy Hai
  * @Student code: 15020951
  * @Description:
- * Input server's IP address and port from the keyboard.
- * User types in some arbitrary messages, the program sends those to the server.
- * Server send back converted messages, print those messages.
- * Type in 'quit' to exit the program.
+ * Allow users to download file from a server sequentially.
+ * Server's IP, port, and filenames are input from the keyboard.
+ * Users type in "QUIT" to quit the program.
  */
 #include <stdio.h>
 #include <unistd.h>
@@ -45,10 +44,10 @@ int main(){
 		return 1;
 	}
 
-	uint32_t default_buf_size = 0;
-	socklen_t tmp = sizeof(default_buf_size);
-	getsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &default_buf_size, &tmp);
-	fprintf(stderr, "default buffer size: %u (var size: %u)\n", default_buf_size, tmp);
+	uint32_t current_buf_size = 0;
+	socklen_t tmp = sizeof(current_buf_size);
+	getsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &current_buf_size, &tmp);
+	fprintf(stdout, "default buffer size: %u\n", current_buf_size);
 
 	/* set socket buffer size */
 	printf("Enter socket buffer size (bytes): ");
@@ -57,8 +56,8 @@ int main(){
 	getchar();
 	setsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &sb_size, sizeof(sb_size));
 
-	getsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &default_buf_size, &tmp);
-	fprintf(stderr, "buffer size after being set: %u (var size: %u)\n", default_buf_size, tmp);
+	getsockopt(servsock, SOL_SOCKET, SO_RCVBUF, &current_buf_size, &tmp);
+	fprintf(stdout, "buffer size after being set: %u\n", current_buf_size);
 
 	
 
@@ -117,7 +116,7 @@ int main(){
 		}
 		file_size = ntohl(file_size);
 		if (file_size == 0){
-			fprintf(stderr, "cannot download file %s\n", filename);
+			fprintf(stdout, "cannot download file \'%s\'\n", filename);
 			continue;
 		}
 
@@ -127,7 +126,7 @@ int main(){
 			break;
 		}
 
-		fprintf(stderr, "file size: %u\n", file_size);
+		fprintf(stdout, "file size: %u\n", file_size);
 		uint32_t remain = file_size;
 		uint32_t n_read = 0;
 		while (remain > 0){
@@ -151,13 +150,16 @@ int main(){
 			continue;
 		}
 		if (n_read < 0){
+			/* other error */
 			remove(filename);
 			break;
 		}
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &end);
-		long duration = (end.tv_sec - begin.tv_sec)*1e3 + (end.tv_nsec - begin.tv_nsec)/1e6;
-		fprintf(stderr, "received \'%s\' successfully in %ld mili seconds\n", filename, duration);
+		long duration = (end.tv_sec - begin.tv_sec)*1e3 
+						+ (end.tv_nsec - begin.tv_nsec)/1e6;
+		fprintf(stdout, "received \'%s\' successfully in %ld mili seconds\n", 
+				filename, duration);
 	}
 	close(servsock);
 	return 0;

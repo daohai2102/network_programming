@@ -2,10 +2,8 @@
  * @Fullname: Dao Duy Hai
  * @Student code: 15020951
  * @Description:
- * Accept connections from clients to port 6969
- * Receive messages from them
- * Convert those messages to upper case
- * Send back converted messages to clients.
+ * Listen on port 6969.
+ * Send files on which clients requested (if possible).
  */
 #include <stdio.h>
 #include <ctype.h>
@@ -122,7 +120,7 @@ int main(){
 				break;
 			}
 
-			fprintf(stderr, "\'%s\' was sent successfully!\n", filename);
+			printf("\'%s\' was sent successfully!\n", filename);
 			fclose(file);
 		}
 		printf("closing client connection\n");

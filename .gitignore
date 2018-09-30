@@ -2,3 +2,7 @@
 *.swp
 file1.png
 file2.jpg
+*.zip
+*.doc
+*.docx
+*.pdf
