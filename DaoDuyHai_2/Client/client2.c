@@ -146,8 +146,14 @@ int main(){
 		fclose(file);
 		if (errno == EWOULDBLOCK){
 			/* socket timeout => file error at the server side */
-			perror("socket timeout");
+			perror("read from socket");
 			continue;
+		}
+		if (n_read == 0){
+			/* server closed connection */
+			remove(filename);
+			fprintf(stderr, "server closed connection\n");
+			break;
 		}
 		if (n_read < 0){
 			/* other error */
