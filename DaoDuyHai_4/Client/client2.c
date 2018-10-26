@@ -70,6 +70,7 @@ int main(int argc, char **argv){
 	printf("Enter \"QUIT\" to exit\n");
 	char filename[256];
 	while (1){
+		printf("file: ");
 		fgets(filename, sizeof(filename), stdin);
 		uint32_t buf_len = strlen(filename);
 
