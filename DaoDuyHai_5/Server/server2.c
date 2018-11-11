@@ -146,6 +146,7 @@ int main(int argc, char **argv){
 				++n_clis;
 			}
 			bzero(&clisin, sizeof(clisin));
+			FD_CLR(servsock, &rfds);
 		}
 
 		/* explore readset and exceptionset */
